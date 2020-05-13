@@ -1,11 +1,13 @@
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  entry: './src/quran_id.js',
+  entry: './src/quran_id/quran_id.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
     filename: 'quran_id.bundle.js'
   },
   module: {
@@ -21,23 +23,42 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env']
+            presets: ['@babel/preset-env'],
+            plugins: [
+                ["@babel/transform-runtime"]
+            ]
           }
         }
       }
     ]
   },
+  resolve: {
+    alias: {
+      'vue$': 'vue/dist/vue.esm.js'
+    }
+  },
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'Development',
-    })
+      inject: false,
+      templateContent: ({htmlWebpackPlugin}) => `
+        <html>
+          <body>
+            <div id='app'></div>
+            ${htmlWebpackPlugin.tags.bodyTags}
+          </body>
+        </html>
+        `
+    }),
+    new VueLoaderPlugin()
   ],
   devServer: {
+    historyApiFallback: true,
     noInfo: true,
     onListening: function(server) {
       const port = server.listeningApp.address().port;
       console.log('Listening on port:', port);
-    }
+    },
+   contentBase: "./public"
   },
   devtool: 'inline-source-map'
 };
